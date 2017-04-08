@@ -6,3 +6,7 @@ A proof of concept of retrieving flair images on Android through parsing subredd
 ## Screenshot
 <img src="https://github.com/derek1906/FlairTest/blob/master/screenshot.png" width="300">
 Figure 1: The flair was retrieved by parsing the subreddit stylesheet from /r/rickandmorty.
+
+
+## GIF backgrounds
+Picasso does not support GIFs, but can be replaced with Glide to add support for GIFs.
