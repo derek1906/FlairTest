@@ -6,6 +6,8 @@ import android.util.Log;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +31,8 @@ class FlairStylesheet {
     String stylesheetString;
     Dimensions defaultDimension = new Dimensions();
     Location defaultLocation = new Location();
+
+    Dimensions prevDimension = null;
 
     class Dimensions{
         int width, height;
@@ -198,6 +202,8 @@ class FlairStylesheet {
         if(flairDimensions.missing) flairDimensions = defaultDimension;
         Log.d("ImageTest", "Dimensions: " + flairDimensions.width + " " + flairDimensions.height);
 
+        prevDimension = flairDimensions;
+
         Location flairLocation = getBackgroundPosition(classDef);
         if(flairLocation.missing)   flairLocation = defaultLocation;
         Log.d("ImageTest", "Location: " + flairLocation.x + " " + flairLocation.y);
@@ -212,5 +218,20 @@ class FlairStylesheet {
                         flairLocation.x,
                         flairLocation.y
                 ));
+    }
+
+    /**
+     * Util function
+     * @return
+     */
+    List<String> getListOfFlairIds(){
+        Pattern flairId = Pattern.compile("\\.flair-(\\w+)\\s*\\{");
+        Matcher matches  = flairId.matcher(stylesheetString);
+
+        List<String> flairIds = new ArrayList<>();
+        while(matches.find()){
+            flairIds.add(matches.group(1));
+        }
+        return flairIds;
     }
 }

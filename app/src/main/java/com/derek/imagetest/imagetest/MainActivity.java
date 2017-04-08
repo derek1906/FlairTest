@@ -5,13 +5,18 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,8 +38,17 @@ public class MainActivity extends AppCompatActivity {
             protected void onPostExecute(FlairStylesheet flairStylesheet) {
                 super.onPostExecute(flairStylesheet);
 
-                // search for flair with id "summer"
-                flairStylesheet.loadFlairById("summer", self).into(imageView);
+                List<String> ids = flairStylesheet.getListOfFlairIds();
+                Log.d("ImageTest", Arrays.toString(ids.toArray()));
+
+                // display a random flair
+                String id = ids.get(new Random().nextInt(ids.size()));
+
+                ((TextView) findViewById(R.id.flairText)).setText(id);
+
+                flairStylesheet.loadFlairById(id, self).into(imageView);
+                imageView.getLayoutParams().width = (int) (flairStylesheet.prevDimension.width * self.getResources().getDisplayMetrics().density);
+                imageView.getLayoutParams().height = (int) (flairStylesheet.prevDimension.height * self.getResources().getDisplayMetrics().density);
             }
         }.execute();
     }
@@ -63,8 +77,10 @@ class StylesheetFetchTask extends AsyncTask<Void, Void, FlairStylesheet>{
 
             return new FlairStylesheet(stylesheet);
         } catch (MalformedURLException e) {
+            Log.d("ImageTest", "Malformed URL Exception");
             return null;
         } catch (IOException e) {
+            Log.d("ImageTest", "IO Exception");
             return null;
         }
     }
