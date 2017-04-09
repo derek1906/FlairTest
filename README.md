@@ -8,10 +8,10 @@ A proof of concept of retrieving flair images on Android through parsing subredd
 Figure 1: A list of flairs found in the /r/rickandmorty stylesheet. Currently flairs are cached but not the size/offset information.
 
 ## Analysis
-# Performance
+### Performance
 Even when it "parses" the the stylesheet everytime a flair is request, impact on performance was not noticable. (Tested with a relatively large amount of /r/rickandmorty flairs.)
 
-#Reliability
+### Reliability
 During testing, different subreddits used various techniques in setting the dimensions of the flair image, such as `width`, `min-width`, and `text-indent` etc. for width. Currently it works with all subreddits with flairs, however it might fail to read flair information in hack-ish CSS rules.
 
 ## GIF backgrounds
