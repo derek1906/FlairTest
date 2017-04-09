@@ -1,12 +1,14 @@
 package com.derek.imagetest.imagetest;
 
 import android.content.Context;
-import android.util.Log;
 
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,10 +142,13 @@ class FlairStylesheet {
     Dimensions getBackgroundSize(String classDefinitionString){
         Pattern numberDefinition = Pattern.compile("(\\d+)\\s*px");
 
+        // check common properties used to define width
         String widthProperty = getProperty(classDefinitionString, "width");
         if(widthProperty == null)   widthProperty = getProperty(classDefinitionString, "min-width");
+        if(widthProperty == null)   widthProperty = getProperty(classDefinitionString, "text-indent");
         if(widthProperty == null)   return new Dimensions();
 
+        // check common properties used to define height
         String heightProperty = getProperty(classDefinitionString, "height");
         if(heightProperty == null)   heightProperty = getProperty(classDefinitionString, "min-height");
         if(heightProperty == null)   return new Dimensions();
@@ -195,24 +200,20 @@ class FlairStylesheet {
         if(classDef == null)    return null;
         String backgroundURL = getBackgroundURL(classDef);
 
-        if(backgroundURL != null)
-            Log.d("ImageTest", backgroundURL);
-
         Dimensions flairDimensions = getBackgroundSize(classDef);
         if(flairDimensions.missing) flairDimensions = defaultDimension;
-        Log.d("ImageTest", "Dimensions: " + flairDimensions.width + " " + flairDimensions.height);
 
         prevDimension = flairDimensions;
 
         Location flairLocation = getBackgroundPosition(classDef);
         if(flairLocation.missing)   flairLocation = defaultLocation;
-        Log.d("ImageTest", "Location: " + flairLocation.x + " " + flairLocation.y);
 
         return Picasso
                 .with(context)
                 .load(backgroundURL)
                 .transform(new CropTransformation(
                         context,
+                        id,
                         flairDimensions.width,
                         flairDimensions.height,
                         flairLocation.x,
@@ -232,6 +233,8 @@ class FlairStylesheet {
         while(matches.find()){
             flairIds.add(matches.group(1));
         }
+
+        Collections.sort(flairIds);
         return flairIds;
     }
 }

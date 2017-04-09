@@ -7,9 +7,11 @@ import com.squareup.picasso.Transformation;
 
 public class CropTransformation implements Transformation {
     private int width, height, x, y;
+    private String id;
 
-    public CropTransformation(Context context, int width, int height, int x, int y) {
+    public CropTransformation(Context context, String id, int width, int height, int x, int y) {
         super();
+        this.id = id;
         this.width = width;
         this.height = height;
         this.x = x;
@@ -21,8 +23,8 @@ public class CropTransformation implements Transformation {
         int
                 nX = Math.max(0, Math.min(bitmap.getWidth(), x)),
                 nY = Math.max(0, Math.min(bitmap.getHeight(), y)),
-                nWidth = Math.max(0, Math.min(bitmap.getWidth() - nX, width)),
-                nHeight = Math.max(0, Math.min(bitmap.getHeight() - nY, height));
+                nWidth = Math.max(1, Math.min(bitmap.getWidth() - nX, width)),
+                nHeight = Math.max(1, Math.min(bitmap.getHeight() - nY, height));
 
         Bitmap b = Bitmap.createBitmap(bitmap, nX, nY, nWidth, nHeight);
         if(bitmap != b) bitmap.recycle();
@@ -31,6 +33,6 @@ public class CropTransformation implements Transformation {
 
     @Override
     public String key() {
-        return "crop";
+        return "crop-" + id;
     }
 }
