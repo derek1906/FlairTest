@@ -5,7 +5,7 @@ A proof of concept of retrieving flair images on Android through parsing subredd
 
 ## Screenshot
 <img src="https://github.com/derek1906/FlairTest/blob/master/screenshot.png" width="300">
-Figure 1: The flair was retrieved by parsing the subreddit stylesheet from /r/rickandmorty.
+Figure 1: A list of flairs found in the /r/rickandmorty stylesheet. Currently flairs are cached but not the size/offset information.
 
 
 ## GIF backgrounds
