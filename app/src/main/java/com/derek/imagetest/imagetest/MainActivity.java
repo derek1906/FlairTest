@@ -17,6 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         final ViewGroup content = (ViewGroup) findViewById(R.id.content);
 
         // fetch and parse stylesheet
-        new StylesheetFetchTask("https://a.thumbs.redditmedia.com/6P4OIeFCpLBkNmc487sF271nPlaZcP-BJo7NXNoXjR0.css"){
+        new StylesheetFetchTask("https://b.thumbs.redditmedia.com/V2mzUL_AECiFZX_6tqTRE3zpFaYtwZ0Ytz2kVMb3eyA.css"){
             @Override
             protected void onPostExecute(FlairStylesheet flairStylesheet) {
                 super.onPostExecute(flairStylesheet);
@@ -117,7 +118,8 @@ class FlairListDisplayAdapter extends ArrayAdapter<String>{
         ImageView imageView = (ImageView) entry.findViewById(R.id.flair);
 
         Picasso.with(context).cancelRequest(imageView);
-        flairStylesheet.loadFlairById(id, context).into(imageView);
+        RequestCreator request = flairStylesheet.loadFlairById(id, context);
+        if(request != null) request.into(imageView);
 
         imageView.getLayoutParams().width = (int) (flairStylesheet.prevDimension.width * context.getResources().getDisplayMetrics().density);
         imageView.getLayoutParams().height = (int) (flairStylesheet.prevDimension.height * context.getResources().getDisplayMetrics().density);

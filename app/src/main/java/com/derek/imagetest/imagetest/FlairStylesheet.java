@@ -1,10 +1,12 @@
 package com.derek.imagetest.imagetest;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Transformation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +35,7 @@ class FlairStylesheet {
     String stylesheetString;
     Dimensions defaultDimension = new Dimensions();
     Location defaultLocation = new Location();
+    String defaultURL = "";
 
     Dimensions prevDimension = null;
 
@@ -48,10 +51,17 @@ class FlairStylesheet {
     }
     class Location{
         int x, y;
+        Boolean isPercentage = false;
         Boolean missing = true;
         Location(int x, int y){
             this.x = x;
             this.y = y;
+            missing = false;
+        }
+        Location(int x, int y, boolean isPercentage) {
+            this.x = x;
+            this.y = y;
+            this.isPercentage = isPercentage;
             missing = false;
         }
         Location(){}
@@ -63,9 +73,10 @@ class FlairStylesheet {
         String baseFlairDef = getClass(stylesheetString, "flair");
         if(baseFlairDef == null)    return;
 
-        // Attempts to find default dimension and offset
+        // Attempts to find default dimension, offset and image URL
         defaultDimension = getBackgroundSize(baseFlairDef);
         defaultLocation = getBackgroundPosition(baseFlairDef);
+        defaultURL = getBackgroundURL(baseFlairDef);
     }
 
     /**
@@ -75,14 +86,17 @@ class FlairStylesheet {
      * @return
      */
     String getClass(String cssDefinitionString, String className){
-        Pattern propertyDefinition = Pattern.compile("\\." + className + "\\s*\\{(.+?)\\}");
+        Pattern propertyDefinition = Pattern.compile("\\." + className + "(,[^\\{]*)*\\{(.+?)\\}");
         Matcher matches = propertyDefinition.matcher(cssDefinitionString);
 
-        if(matches.find()){
-            return matches.group(1);
-        }else {
-            return null;
+        String properties = null;
+
+        while(matches.find()){
+            if(properties == null)  properties = "";
+            properties = matches.group(2) + ";" + properties;   // append properties to simulate property overriding
         }
+
+        return properties;
     }
 
     /**
@@ -173,22 +187,31 @@ class FlairStylesheet {
      * @return
      */
     Location getBackgroundPosition(String classDefinitionString){
-        Pattern positionDefinition = Pattern.compile("([+-]?\\d+|0)\\s+([+-]?\\d+|0)\\s*px");
+        Pattern positionDefinitionPx = Pattern.compile("([+-]?\\d+|0)px\\s+([+-]?\\d+|0)px"),
+                positionDefinitionPercentage = Pattern.compile("([+-]?\\d+|0)%\\s+([+-]?\\d+|0)%");
 
         String backgroundPositionProperty = getProperty(classDefinitionString, "background-position");
         if(backgroundPositionProperty == null)  return new Location();
 
-        Matcher matches  = positionDefinition.matcher((backgroundPositionProperty));
+        Matcher matches = positionDefinitionPx.matcher(backgroundPositionProperty);
         if(matches.find()){
             return new Location(
                     -Integer.parseInt(matches.group(1)),
                     -Integer.parseInt(matches.group(2))
             );
         }else{
+            matches = positionDefinitionPercentage.matcher(backgroundPositionProperty);
+            if(matches.find()){
+                return new Location(
+                        Integer.parseInt(matches.group(1)),
+                        Integer.parseInt(matches.group(2)),
+                        true
+                );
+            }
             return new Location();
         }
     }
-
+    
     /**
      * Request a flair by flair id. `.into` can be chained onto this method call.
      * @param id
@@ -199,6 +222,7 @@ class FlairStylesheet {
         String classDef = getClass(stylesheetString, "flair-" + id);
         if(classDef == null)    return null;
         String backgroundURL = getBackgroundURL(classDef);
+        if(backgroundURL == null)   backgroundURL = defaultURL;
 
         Dimensions flairDimensions = getBackgroundSize(classDef);
         if(flairDimensions.missing) flairDimensions = defaultDimension;
@@ -208,17 +232,33 @@ class FlairStylesheet {
         Location flairLocation = getBackgroundPosition(classDef);
         if(flairLocation.missing)   flairLocation = defaultLocation;
 
+        Transformation transformation;
+        if(flairLocation.isPercentage){
+            transformation = new CropTransformation(
+                    context,
+                    id,
+                    flairDimensions.width,
+                    flairDimensions.height,
+                    flairLocation.x,
+                    flairLocation.y,
+                    true
+            );
+        }else{
+            transformation = new CropTransformation(
+                    context,
+                    id,
+                    flairDimensions.width,
+                    flairDimensions.height,
+                    flairLocation.x,
+                    flairLocation.y
+            );
+        }
+
+
         return Picasso
                 .with(context)
                 .load(backgroundURL)
-                .transform(new CropTransformation(
-                        context,
-                        id,
-                        flairDimensions.width,
-                        flairDimensions.height,
-                        flairLocation.x,
-                        flairLocation.y
-                ));
+                .transform(transformation);
     }
 
     /**
@@ -226,7 +266,7 @@ class FlairStylesheet {
      * @return
      */
     List<String> getListOfFlairIds(){
-        Pattern flairId = Pattern.compile("\\.flair-(\\w+)\\s*\\{");
+        Pattern flairId = Pattern.compile("\\.flair-(\\w+)[^\\{]*\\{");
         Matcher matches  = flairId.matcher(stylesheetString);
 
         List<String> flairIds = new ArrayList<>();

@@ -6,6 +6,7 @@ import android.util.Log;
 import com.squareup.picasso.Transformation;
 
 public class CropTransformation implements Transformation {
+    private boolean isPercentage;
     private int width, height, x, y;
     private String id;
 
@@ -18,13 +19,26 @@ public class CropTransformation implements Transformation {
         this.y = y;
     }
 
+    public CropTransformation(Context context, String id, int width, int height, int x, int y, boolean isPercentage) {
+        this(context, id, width, height, x, y);
+        this.isPercentage = isPercentage;
+    }
+
     @Override
     public Bitmap transform(Bitmap bitmap) {
+        int nX, nY;
+
+        if(isPercentage) {
+            nX = Math.max(0, Math.min(bitmap.getWidth() - 1, bitmap.getWidth() * x / 100));
+            nY = Math.max(0, Math.min(bitmap.getHeight() - 1, bitmap.getHeight() * y / 100));
+        }else{
+            nX = Math.max(0, Math.min(bitmap.getWidth() - 1, x));
+            nY = Math.max(0, Math.min(bitmap.getHeight() - 1, y));
+        }
+
         int
-                nX = Math.max(0, Math.min(bitmap.getWidth(), x)),
-                nY = Math.max(0, Math.min(bitmap.getHeight(), y)),
-                nWidth = Math.max(1, Math.min(bitmap.getWidth() - nX, width)),
-                nHeight = Math.max(1, Math.min(bitmap.getHeight() - nY, height));
+                nWidth = Math.max(1, Math.min(bitmap.getWidth() - nX - 1, width)),
+                nHeight = Math.max(1, Math.min(bitmap.getHeight() - nY - 1, height));
 
         Bitmap b = Bitmap.createBitmap(bitmap, nX, nY, nWidth, nHeight);
         if(bitmap != b) bitmap.recycle();
